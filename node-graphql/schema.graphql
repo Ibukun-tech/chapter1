@@ -1,0 +1,26 @@
+type Query {
+  pid: Int!
+  recipe(id: ID!): Recipe
+  
+  recipes: [Recipe!]!
+  
+   searchRecipes(query: String!): [Recipe!]!
+}
+type Recipe {
+ 
+  id: ID!
+  
+   name: String!
+   steps: String
+  
+  ingredients: [Ingredient!]!
+  cookTime: Int
+  difficulty: String
+}
+
+
+type Ingredient {
+  id: ID! 
+  name: String!
+  quantity: String
+}
