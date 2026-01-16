@@ -1,154 +1,31 @@
-/**
- * GRAPHQL SERVER WITH FASTIFY
- * 
- * WHAT: A Node.js server that exposes a GraphQL API.
- * WHY: Fastify is fast, modern, and has great GraphQL support.
- * HOW: Uses Mercurius plugin to add GraphQL to Fastify.
- * WHERE: This runs on http://localhost:3000
- */
 
 import Fastify from 'fastify';
 import mercurius from 'mercurius';
 import { readFileSync } from 'fs';
 import { resolvers } from './resolvers.js';
 
-/**
- * STEP 1: CREATE FASTIFY INSTANCE
- * 
- * WHY logger: true? See all requests and responses in console.
- * WHEN: Development - helps debug. Production - use proper logging.
- */
+
 const fastify = Fastify({
-  logger: true  // Logs every request
+  logger: true  
 });
 
-/**
- * STEP 2: READ GRAPHQL SCHEMA
- * 
- * WHY read from file? 
- * - Keeps schema separate from code
- * - Easier to read and maintain
- * - Can be shared with frontend teams
- * 
- * HOW: Use readFileSync to load schema.graphql as string
- */
+
 const schema = readFileSync('./schema.graphql', 'utf8');
 
-/**
- * STEP 3: REGISTER MERCURIUS (GRAPHQL PLUGIN)
- * 
- * WHAT: Mercurius adds GraphQL capabilities to Fastify.
- * 
- * WHY Mercurius?
- * - Built for Fastify (optimized)
- * - Supports subscriptions (real-time)
- * - GraphiQL included
- * - Schema-first approach
- * 
- * OPTIONS EXPLAINED:
- */
+
 await fastify.register(mercurius, {
-  /**
-   * schema: The GraphQL schema (string or object)
-   * 
-   * WHAT: Defines what queries are possible
-   * FORMAT: GraphQL Schema Definition Language (SDL)
-   */
   schema,
-
-  /**
-   * resolvers: Functions that fetch data
-   * 
-   * WHAT: The implementation of your schema
-   * HOW: Maps schema fields to actual data
-   * STRUCTURE: Must match schema structure
-   */
   resolvers,
-
-  /**
-   * graphiql: Enable GraphiQL interface
-   * 
-   * WHAT: Web-based GraphQL IDE
-   * WHERE: http://localhost:3000/graphiql
-   * WHY: Easy testing and exploration
-   * WHEN: Development only (disable in production!)
-   * 
-   * FEATURES:
-   * - Query editor with syntax highlighting
-   * - Auto-complete
-   * - Schema documentation
-   * - Query history
-   */
   graphiql: true,
-
-  /**
-   * path: GraphQL endpoint URL
-   * 
-   * WHAT: Where to send GraphQL queries
-   * DEFAULT: '/graphql'
-   * WHY customize: Match your API conventions
-   * 
-   * This means:
-   * - POST to http://localhost:3000/graphql for queries
-   * - GET to http://localhost:3000/graphiql for IDE
-   */
   path: '/graphql',
-
-  /**
-   * context: Shared data across all resolvers
-   * 
-   * WHAT: Function that runs on every request
-   * WHY: Share common data (user, database connection, etc.)
-   * WHEN: Use for authentication, database, services
-   * 
-   * @param {object} request - Fastify request object
-   * @param {object} reply - Fastify reply object
-   * @returns {object} Context object passed to all resolvers
-   * 
-   * EXAMPLE USE CASES:
-   * - Add database connection
-   * - Add authenticated user
-   * - Add request metadata
-   */
   context: (request, reply) => {
     return {
-      // Example: Add request ID for tracing
       requestId: request.id,
-      
-      // Example: You could add database here
-      // db: getDatabaseConnection(),
-      
-      // Example: You could add user from auth token
-      // user: getUserFromToken(request.headers.authorization)
-      
-      // For now, just return request info
       request,
       reply
     };
   },
-
-  /**
-   * errorFormatter: Customize error responses
-   * 
-   * WHAT: Function to format GraphQL errors
-   * WHY: Add custom error info, hide sensitive data
-   * WHEN: Production - sanitize errors for security
-   * 
-   * @param {object} execution - The error details
-   * @param {object} context - Request context
-   * @returns {object} Formatted error
-   */
-  errorFormatter: (execution, context) => {
-    // Log errors (in production, send to error tracking service)
-    if (execution.errors) {
-      execution.errors.forEach(error => {
-        console.error('[GRAPHQL ERROR]', {
-          message: error.message,
-          path: error.path,
-          timestamp: new Date().toISOString()
-        });
-      });
-    }
+     }
     
     // Return default formatted errors
     // In production, you might want to hide error details
